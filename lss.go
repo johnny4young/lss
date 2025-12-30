@@ -2,6 +2,9 @@ package main
 
 import "time"
 
+// operating systems
+const Windows = "windows"
+
 // file types
 const (
 	fileRegular int = iota
@@ -15,19 +18,20 @@ const (
 
 // file extension
 const (
-	exe  = ".exe"
-	deb  = ".deb"
-	zip  = ".zip"
-	tar  = ".tar"
-	rar  = ".rar"
-	png  = ".png"
-	jpg  = ".jpg"
-	jpeg = ".jpeg"
-	gif  = ".gif"
-	txt  = ".txt"
-	md   = ".md"
-	csv  = ".csv"
-	json = ".json"
+	exe    = ".exe"
+	deb    = ".deb"
+	zip    = ".zip"
+	tar    = ".tar"
+	tar_gz = ".tar.gz"
+	rar    = ".rar"
+	png    = ".png"
+	jpg    = ".jpg"
+	jpeg   = ".jpeg"
+	gif    = ".gif"
+	txt    = ".txt"
+	md     = ".md"
+	csv    = ".csv"
+	json   = ".json"
 )
 
 type file struct {

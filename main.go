@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"runtime"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -42,7 +45,7 @@ func main() {
 		fs = append(fs, f)
 	}
 
-	fmt.Println(fs)
+	printList(fs)
 
 	fmt.Println("pattern:", *flagPattern)
 	fmt.Println("all:", *flagAll)
@@ -53,22 +56,74 @@ func main() {
 
 }
 
+func printList(fs []file) {
+	for _, file := range fs {
+		//style := mapStyleByFileType[file.fileType]
+		fmt.Printf("%s %s %s %10d %s\n", file.mode, file.userName, file.groupName, file.size, file.modificationTime.Format(time.DateTime))
+	}
+}
+
 func getFile(dir fs.DirEntry, isHidden bool) (file, error) {
 	info, err := dir.Info()
 	if err != nil {
 		return file{}, fmt.Errorf("dir.Info(): %v", err)
 	}
+
 	f := file{
 		name:             dir.Name(),
 		fileType:         0,
 		isDir:            dir.IsDir(),
 		isHidden:         isHidden,
-		userName:         "",
-		groupName:        "",
+		userName:         "test",
+		groupName:        "test",
 		size:             info.Size(),
 		modificationTime: info.ModTime(),
 		mode:             info.Mode().String(),
 	}
+	setFile(&f)
 
 	return f, nil
+}
+
+func setFile(f *file) {
+	switch {
+	case isLink(*f):
+		f.fileType = fileLink
+	case f.isDir:
+		f.fileType = fileDirectory
+	case isExec(*f):
+		f.fileType = fileExecutable
+	case isCompress(*f):
+		f.fileType = fileCompress
+	case isImage(*f):
+		f.fileType = fileImage
+	default:
+		f.fileType = fileRegular
+	}
+}
+
+func isLink(f file) bool {
+	return strings.HasPrefix(strings.ToUpper(f.mode), "L")
+}
+
+func isExec(f file) bool {
+	if runtime.GOOS == Windows {
+		return strings.HasSuffix(strings.ToLower(f.name), exe)
+	}
+	return strings.Contains(f.mode, "x")
+}
+
+func isCompress(f file) bool {
+	return strings.HasSuffix(f.name, tar_gz) ||
+		strings.HasSuffix(f.name, tar) ||
+		strings.HasSuffix(f.name, zip) ||
+		strings.HasSuffix(f.name, rar) ||
+		strings.HasSuffix(f.name, deb)
+}
+
+func isImage(f file) bool {
+	return strings.HasSuffix(f.name, png) ||
+		strings.HasSuffix(f.name, jpg) ||
+		strings.HasSuffix(f.name, jpeg) ||
+		strings.HasSuffix(f.name, gif)
 }
