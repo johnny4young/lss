@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -42,24 +43,35 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
+		isMatched, err := regexp.MatchString("(?i)"+*flagPattern, f.name) // case insensitive
+		if err != nil {
+			panic(err)
+		}
+
+		if !isMatched {
+			continue
+		}
+
 		fs = append(fs, f)
 	}
 
-	printList(fs)
+	if *flagNumberRecords == 0 || *flagNumberRecords > len(fs) {
+		*flagNumberRecords = len(fs)
+	}
 
-	fmt.Println("pattern:", *flagPattern)
+	printList(fs, *flagNumberRecords)
+
 	fmt.Println("all:", *flagAll)
-	fmt.Println("number of records:", *flagNumberRecords)
-	//fmt.Println("order by time:", *hasOrderByTime)
-	//fmt.Println("sort by size:", *hasOrderBySize)
-	//fmt.Println("reverse order:", *hasOrderReverse)
 
 }
 
-func printList(fs []file) {
-	for _, file := range fs {
-		//style := mapStyleByFileType[file.fileType]
-		fmt.Printf("%s %s %s %10d %s\n", file.mode, file.userName, file.groupName, file.size, file.modificationTime.Format(time.DateTime))
+func printList(fs []file, nRecords int) {
+	for _, file := range fs[:nRecords] {
+		style := mapStyleByFileType[file.fileType]
+
+		fmt.Printf("%s %s %s %10d %s %s %s%s\n", file.mode, file.userName, file.groupName,
+			file.size, file.modificationTime.Format(time.DateTime), style.icon, file.name, style.symbol)
 	}
 }
 
