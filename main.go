@@ -39,18 +39,26 @@ func main() {
 
 	for _, dir := range dirs {
 
-		f, err := getFile(dir, false)
-		if err != nil {
-			panic(err)
-		}
+		isHidden := isHidden(dir.Name(), path)
 
-		isMatched, err := regexp.MatchString("(?i)"+*flagPattern, f.name) // case insensitive
-		if err != nil {
-			panic(err)
-		}
-
-		if !isMatched {
+		if isHidden && !*flagAll {
 			continue
+		}
+
+		if *flagPattern != "" {
+			isMatched, err := regexp.MatchString("(?i)"+*flagPattern, dir.Name()) // case insensitive
+			if err != nil {
+				panic(err)
+			}
+
+			if !isMatched {
+				continue
+			}
+		}
+
+		f, err := getFile(dir, isHidden)
+		if err != nil {
+			panic(err)
 		}
 
 		fs = append(fs, f)
@@ -61,8 +69,6 @@ func main() {
 	}
 
 	printList(fs, *flagNumberRecords)
-
-	fmt.Println("all:", *flagAll)
 
 }
 
@@ -138,4 +144,8 @@ func isImage(f file) bool {
 		strings.HasSuffix(f.name, jpg) ||
 		strings.HasSuffix(f.name, jpeg) ||
 		strings.HasSuffix(f.name, gif)
+}
+
+func isHidden(fileName, path string) bool {
+	return strings.HasPrefix(fileName, ".")
 }
