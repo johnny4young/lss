@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -18,8 +19,8 @@ func main() {
 	flagNumberRecords := flag.Int("n", 0, "number of records to generate")
 
 	// order flags
-	//hasOrderByTime := flag.Bool("t", false, "order by time oldest to first")
-	//hasOrderBySize := flag.Bool("s", false, "sort by size smallest to largest")
+	hasOrderByTime := flag.Bool("t", false, "order by time oldest to first")
+	hasOrderBySize := flag.Bool("s", false, "sort by size smallest to largest")
 	//hasOrderReverse := flag.Bool("r", false, "reverse order")
 
 	flag.Parse()
@@ -64,12 +65,23 @@ func main() {
 		fs = append(fs, f)
 	}
 
+	// ordering
+	if !*hasOrderByTime || !*hasOrderBySize {
+		orderByName(fs)
+	}
+
 	if *flagNumberRecords == 0 || *flagNumberRecords > len(fs) {
 		*flagNumberRecords = len(fs)
 	}
 
 	printList(fs, *flagNumberRecords)
 
+}
+
+func orderByName(file []file) {
+	sort.SliceStable(file, func(i, j int) bool {
+		return strings.ToLower(file[i].name) < strings.ToLower(file[j].name)
+	})
 }
 
 func printList(fs []file, nRecords int) {
