@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/AJRDRGZ/fileinfo"
 	"golang.org/x/exp/constraints"
 )
 
@@ -129,13 +131,15 @@ func getFile(dir fs.DirEntry, isHidden bool) (file, error) {
 		return file{}, fmt.Errorf("dir.Info(): %v", err)
 	}
 
+	userName, groupName := fileinfo.GetUserAndGroup(info.Sys())
+
 	f := file{
 		name:             dir.Name(),
 		fileType:         0,
 		isDir:            dir.IsDir(),
 		isHidden:         isHidden,
-		userName:         "test",
-		groupName:        "test",
+		userName:         userName,
+		groupName:        groupName,
 		size:             info.Size(),
 		modificationTime: info.ModTime(),
 		mode:             info.Mode().String(),
@@ -188,6 +192,12 @@ func isImage(f file) bool {
 		strings.HasSuffix(f.name, gif)
 }
 
-func isHidden(fileName, path string) bool {
-	return strings.HasPrefix(fileName, ".")
+func isHidden(fileName, basePath string) bool {
+	filepath := fileName
+	if runtime.GOOS == Windows {
+		filepath = path.Join(basePath, filepath)
+	}
+
+	return fileinfo.IsHidden(filepath)
+
 }

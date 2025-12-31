@@ -1,8 +1,12 @@
 package main
 
-import "time"
+import (
+	"time"
 
-// operating systems
+	"github.com/fatih/color"
+)
+
+// Windows operating systems
 const Windows = "windows"
 
 // file types
@@ -48,16 +52,25 @@ type file struct {
 
 type styleFileType struct {
 	icon   string
-	color  string
+	color  color.Attribute
 	symbol string
 }
 
 var mapStyleByFileType = map[int]styleFileType{
-	fileRegular:    {"📄", "white", ""},
-	fileDirectory:  {"📁", "blue", "/"},
-	fileExecutable: {"⚙️", "green", "*"},
-	fileCompress:   {"🗜️", "yellow", ""},
-	fileImage:      {"🖼️", "magenta", ""},
-	fileText:       {"📃", "cyan", ""},
-	fileLink:       {"🔗", "blue", "@"},
+	fileRegular:    {"📄", color.FgWhite, ""},
+	fileDirectory:  {"📁", color.FgBlue, "/"},
+	fileExecutable: {"⚙️", color.FgGreen, "*"},
+	fileCompress:   {"🗜️", color.FgYellow, ""},
+	fileImage:      {"🖼️", color.FgMagenta, ""},
+	fileText:       {"📃", color.FgCyan, ""},
+	fileLink:       {"🔗", color.FgBlue, "@"},
 }
+
+var (
+	blue    = color.New(color.FgBlue).Add(color.Bold).SprintFunc()
+	green   = color.New(color.FgGreen).Add(color.Bold).SprintFunc()
+	red     = color.New(color.FgRed).Add(color.Bold).SprintFunc()
+	magenta = color.New(color.FgMagenta).Add(color.Bold).SprintFunc()
+	cyan    = color.New(color.FgCyan).Add(color.Bold).SprintFunc()
+	yellow  = color.New(color.FgYellow).SprintFunc()
+)
