@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"golang.org/x/exp/constraints"
 )
 
 func main() {
@@ -21,7 +23,7 @@ func main() {
 	// order flags
 	hasOrderByTime := flag.Bool("t", false, "order by time oldest to first")
 	hasOrderBySize := flag.Bool("s", false, "sort by size smallest to largest")
-	//hasOrderReverse := flag.Bool("r", false, "reverse order")
+	hasOrderReverse := flag.Bool("r", false, "reverse order")
 
 	flag.Parse()
 
@@ -67,7 +69,15 @@ func main() {
 
 	// ordering
 	if !*hasOrderByTime || !*hasOrderBySize {
-		orderByName(fs)
+		orderByName(fs, *hasOrderReverse)
+	}
+
+	if *hasOrderBySize && !*hasOrderByTime {
+		orderBySize(fs, *hasOrderReverse)
+	}
+
+	if *hasOrderByTime {
+		orderByTime(fs, *hasOrderReverse)
 	}
 
 	if *flagNumberRecords == 0 || *flagNumberRecords > len(fs) {
@@ -78,10 +88,30 @@ func main() {
 
 }
 
-func orderByName(file []file) {
+func orderByName(file []file, isReverse bool) {
 	sort.SliceStable(file, func(i, j int) bool {
-		return strings.ToLower(file[i].name) < strings.ToLower(file[j].name)
+		return mySort(strings.ToLower(file[i].name), strings.ToLower(file[j].name), isReverse)
 	})
+}
+
+func orderBySize(file []file, isReverse bool) {
+	sort.SliceStable(file, func(i, j int) bool {
+		return mySort(file[i].size, file[j].size, isReverse)
+	})
+}
+
+func orderByTime(file []file, isReverse bool) {
+	sort.SliceStable(file, func(i, j int) bool {
+		return mySort(file[i].modificationTime.Unix(), file[j].modificationTime.Unix(), isReverse)
+	})
+}
+
+// generic implementation of sort
+func mySort[T constraints.Ordered](i, j T, isReverse bool) bool {
+	if isReverse {
+		return i > j
+	}
+	return i < j
 }
 
 func printList(fs []file, nRecords int) {
