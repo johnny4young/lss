@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/AJRDRGZ/fileinfo"
+	"github.com/fatih/color"
 	"golang.org/x/exp/constraints"
 )
 
@@ -120,8 +121,8 @@ func printList(fs []file, nRecords int) {
 	for _, file := range fs[:nRecords] {
 		style := mapStyleByFileType[file.fileType]
 
-		fmt.Printf("%s %s %s %10d %s %s %s%s\n", file.mode, file.userName, file.groupName,
-			file.size, file.modificationTime.Format(time.DateTime), style.icon, file.name, style.symbol)
+		fmt.Printf("%s %s %s %10d %s %s %s%s %s\n", file.mode, file.userName, file.groupName,
+			file.size, file.modificationTime.Format(time.DateTime), style.icon, setColor(file.name, style.color), style.symbol, markHidden(file.isHidden))
 	}
 }
 
@@ -166,6 +167,25 @@ func setFile(f *file) {
 	}
 }
 
+func setColor(nameFile string, styleColor color.Attribute) string {
+	switch styleColor {
+	case color.FgBlack:
+		return blue(nameFile)
+	case color.FgGreen:
+		return green(nameFile)
+	case color.FgRed:
+		return red(nameFile)
+	case color.FgMagenta:
+		return magenta(nameFile)
+	case color.FgYellow:
+		return yellow(nameFile)
+	case color.FgCyan:
+		return cyan(nameFile)
+	default:
+		return nameFile
+	}
+}
+
 func isLink(f file) bool {
 	return strings.HasPrefix(strings.ToUpper(f.mode), "L")
 }
@@ -200,4 +220,12 @@ func isHidden(fileName, basePath string) bool {
 
 	return fileinfo.IsHidden(filepath)
 
+}
+
+func markHidden(isHidden bool) string {
+	if !isHidden {
+		return ""
+	}
+
+	return yellow("∅")
 }
